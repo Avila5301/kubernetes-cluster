@@ -61,7 +61,7 @@ sudo ./kubernetes-setup.sh [OPTIONS]
 |---------------------|----------------------------------------------------------------|----------------------|
 | `--node_type`       | Node type: `cp` (Control Plane) or `worker`                    | `cp`                 |
 | `--hostname`        | Hostname for the node                                          | `k8s-master-node`    |
-| `--k8s_version`     | Kubernetes version (e.g., `v1.31`)                             | `v1.31`              |
+| `--k8s_version`     | Kubernetes version (e.g., `1.31`)                             | `1.31`              |
 | `--pod_cidr`        | Pod CIDR for networking                                        | `192.168.0.0/16`     |
 | `--join`            | Master node IP and port (Required for worker nodes)            | *None*               |
 | `--token`           | Token for joining the cluster (Required for worker nodes)      | *None*               |

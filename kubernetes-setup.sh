@@ -248,7 +248,7 @@ initialize_control_plane() {
 
 # Ask user to switch to regular user
 setup_k8s_user() {
-    local K8S_USER="$(whoami)"
+    local K8S_USER="${SUDO_USER:-$(whoami)}"
 
     echo_log "INFO" "Configuring Kubernetes access for user: $K8S_USER"
 
