@@ -120,7 +120,7 @@ check_ubuntu_version() {
 
 # Function to configure hostname
 configure_hostname() {
-    local HOSTNAME="$1"
+    local HOSTNAME=$HOSTNAME
     
     if [[ -z "$HOSTNAME" ]]; then
         echo_log "ERROR" "Hostname not provided. Usage: $0 <hostname>"
@@ -135,7 +135,13 @@ configure_hostname() {
 disable_swap() {
     echo_log "INFO" "Disabling swap..."
     swapoff -a || true
-    sed -i '/swap/d' /etc/fstab
+    echo "Disabling swap permanently by modifying /etc/fstab..."
+    if grep -Eqs '^\s*[^#].*\s+swap\s' /etc/fstab; then
+        sudo sed -i.bak '/^\s*[^#].*\s\+swap\s\+/s/^/#/' /etc/fstab
+        echo "Swap entries in /etc/fstab have been commented out. A backup is saved as /etc/fstab.bak"
+    else
+        echo "ℹ️ No active swap entries found in /etc/fstab."
+    fi
 }
 
 # Load Containerd Modules 
@@ -144,7 +150,7 @@ containerd_modules() {
     sudo modprobe overlay
     sudo modprobe br_netfilter
 
-    cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf > /dev/null
+    sudo tee /etc/modules-load.d/k8s.conf <<EOF
 overlay
 br_netfilter
 EOF
@@ -180,10 +186,12 @@ install_docker() {
     echo_log "INFO" "Installing Docker"
     sudo apt install docker.io -y
     sudo systemctl enable docker
+    sleep 2
     sudo mkdir /etc/containerd
     sudo sh -c "containerd config default > /etc/containerd/config.toml"
     sudo sed -i 's/ SystemdCgroup = false/ SystemdCgroup = true/' /etc/containerd/config.toml
     sudo systemctl restart containerd.service
+    sleep 2
     echo_log "INFO" "Docker Installed and Containerd Configured"
 }
 
@@ -201,7 +209,7 @@ install_k8s_tools() {
 
 join_master() {
     echo_log "INFO" "Joining Master Node.."
-    sudo kubeadm join $JOIN --token $TOKEN --discovery-token-ca-cert-hash $DISCOVERY_TOKEN
+    kubeadm join $JOIN --token $TOKEN --discovery-token-ca-cert-hash $DISCOVERY_TOKEN
     echo_log "INFO" "Successfully Joined Master Node.."
 }
 
@@ -288,8 +296,8 @@ setup_k8s_user() {
 install_calico_plugin() {
     local POD_CIDR=$POD_CIDR
 
-    echo_log "INFO" "Waiting 60 seconds before moving on..."
-    sleep 60
+    echo_log "INFO" "Waiting 120 seconds before moving on..."
+    sleep 120
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
     kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
         echo_log "ERROR" "Failed to apply Calico operator manifest."; exit 1;
@@ -312,7 +320,6 @@ install_calico_plugin() {
     wait_for_node_staus
 }
 
-# Ask user to run script on Worker Node and copy the kubeadm join cmd
 
 
 
