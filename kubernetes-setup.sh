@@ -205,19 +205,17 @@ join_master() {
     echo_log "INFO" "Successfully Joined Master Node.."
 }
 
-wait_for_api_server() {
+wait_for_node_staus() {
     echo_log "INFO" "Waiting for Kubernetes API server to become available..."
 
-    for i in {1..150}; do  # 150 loops × 2 seconds = 300 seconds (5 minutes)
+    for i in {1..30}; do  # 30 loops × 2 seconds = 60 seconds (1 minutes)
         if kubectl version --short &>/dev/null; then
             echo_log "INFO" "Kubernetes API server is responsive."
+            kubectl get nodes
             return 0
         fi
         sleep 2
     done
-
-    echo_log "ERROR" "Kubernetes API server did not become ready within 5 minutes."
-    exit 1
 }
 
 # CP Node Actions Below
@@ -290,7 +288,8 @@ setup_k8s_user() {
 install_calico_plugin() {
     local POD_CIDR=$POD_CIDR
 
-    wait_for_api_server
+    echo_log "INFO" "Waiting 60 seconds before moving on..."
+    sleep 60
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
     kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
         echo_log "ERROR" "Failed to apply Calico operator manifest."; exit 1;
@@ -309,6 +308,8 @@ install_calico_plugin() {
     }
 
     echo_log "INFO" "Calico network plugin installed successfully."
+
+    wait_for_node_staus
 }
 
 # Ask user to run script on Worker Node and copy the kubeadm join cmd
