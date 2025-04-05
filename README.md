@@ -44,7 +44,7 @@ This Bash script automates the provisioning of Kubernetes Control Plane (cp) and
 - Must be run with `sudo`
 - Script must have execute permissions:
   ```bash
-  chmod +x k8s_provision.sh
+  chmod +x kubernetes-setup.sh
   ```
 
 ---
@@ -52,7 +52,7 @@ This Bash script automates the provisioning of Kubernetes Control Plane (cp) and
 ## 🚀 Usage
 
 ```bash
-sudo ./k8s_provision.sh [OPTIONS]
+sudo ./kubernetes-setup.sh [OPTIONS]
 ```
 
 ### ✅ Common Arguments
@@ -76,13 +76,13 @@ sudo ./k8s_provision.sh [OPTIONS]
 ### 🛠 Provision a Control Plane Node
 
 ```bash
-sudo ./k8s_provision.sh --node_type cp --hostname my-cp-node
+sudo ./kubernetes-setup.sh --node_type cp --hostname my-cp-node
 ```
 
 Or with custom Kubernetes version and Pod CIDR:
 
 ```bash
-sudo ./k8s_provision.sh --node_type cp --hostname my-cp-node --k8s_version v1.32 --pod_cidr 10.244.0.0/16
+sudo ./kubernetes-setup.sh --node_type cp --hostname my-cp-node --k8s_version v1.32 --pod_cidr 10.244.0.0/16
 ```
 
 ---
@@ -92,7 +92,7 @@ sudo ./k8s_provision.sh --node_type cp --hostname my-cp-node --k8s_version v1.32
 First, retrieve the join command from the control plane node log at `/var/log/k8s_provisioning.log`, then:
 
 ```bash
-sudo ./k8s_provision.sh \
+sudo ./kubernetes-setup.sh \
   --node_type worker \
   --hostname worker-node-1 \
   --join 172.168.222.222:6443 \

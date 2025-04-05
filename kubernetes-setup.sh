@@ -193,7 +193,7 @@ install_k8s_tools() {
     echo_log "INFO" "Installing Kubernetes required tools (Version: $K8S_VERSION)..."
     sudo apt-get install curl ca-certificates apt-transport-https -y
     curl -fsSL https://pkgs.k8s.io/core:/stable:/v$K8S_VERSION/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$K8S_VERSION/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v$K8S_VERSION/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
     sudo apt update
     sudo apt install kubelet kubeadm kubectl -y
     echo_log "INFO" "Installed Kubelet, Kubeadm and Kubectl successfully"
@@ -210,12 +210,12 @@ join_master() {
 
 # Function to determine node type
 select_node_type() {
-    if [[ "$1" == "cp" ]]; then
+    if [[ "$NODE_TYPE" == "cp" ]]; then
         echo_log "INFO" "Provisioning a Control Plane Node."
         initialize_control_plane
         setup_k8s_user
         install_calico_plugin        
-    elif [[ "$1" == "worker" ]]; then
+    elif [[ "$NODE_TYPE" == "worker" ]]; then
         echo_log "INFO" "Provisioning a Worker Node."
         if [[ -z "$JOIN" || -z "$TOKEN" || -z "$DISCOVERY_TOKEN" ]]; then
             echo_log "ERROR" "--join, --token and --discovery-token are required."
