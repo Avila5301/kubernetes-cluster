@@ -210,7 +210,7 @@ join_master() {
 
 # Function to determine node type
 select_node_type() {
-    if [[ "$NODE_TYPE" == "cp" ]]; then
+    if [[ $NODE_TYPE == "cp" ]]; then
         echo_log "INFO" "Provisioning a Control Plane Node."
         initialize_control_plane
         setup_k8s_user
@@ -231,7 +231,7 @@ select_node_type() {
 
 # Init k8s (Master Node)
 initialize_control_plane() {
-    local POD_CIDR="$POD_CIDR"
+    local POD_CIDR=$POD_CIDR
     echo_log "INFO" "Initializing Kubernetes control plane with CIDR: $POD_CIDR..."
 
     kubeadm init --pod-network-cidr=$POD_CIDR 2>&1 | tee -a "$LOG_FILE"
@@ -274,7 +274,7 @@ setup_k8s_user() {
 
 # Install Calico Plugin
 install_calico_plugin() {
-    local POD_CIDR="$POD_CIDR"
+    local POD_CIDR=$POD_CIDR
 
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
     kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
@@ -285,7 +285,7 @@ install_calico_plugin() {
         echo_log "ERROR" "Failed to download custom-resources.yaml."; exit 1;
     }
 
-    sed -i 's/cidr: 192\.168\.0\.0\/16/cidr: $POD_CIDR/g' custom-resources.yaml || {
+    sed -i "s/cidr: 192\.168\.0\.0\/16/cidr: $POD_CIDR/g" custom-resources.yaml || {
         echo_log "ERROR" "Failed to update CIDR in custom-resources.yaml."; exit 1;
     }
 
