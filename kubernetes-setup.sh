@@ -285,7 +285,7 @@ install_calico_plugin() {
         echo_log "ERROR" "Failed to download custom-resources.yaml."; exit 1;
     }
 
-    sed -i "s/cidr: 192\\.168\\.0\\.0\/16/cidr: $POD_CIDR/g" custom-resources.yaml || {
+    sed -i 's/cidr: 192\.168\.0\.0\/16/cidr: $POD_CIDR/g' custom-resources.yaml || {
         echo_log "ERROR" "Failed to update CIDR in custom-resources.yaml."; exit 1;
     }
 
@@ -316,4 +316,4 @@ install_docker
 install_k8s_tools "$K8S_VERSION"
 
 # Fucntion Required for Master Node only / Worker Join
-select_node_type "$@"
+select_node_type "$NODE_TYPE"
