@@ -248,7 +248,7 @@ initialize_control_plane() {
 
 # Ask user to switch to regular user
 setup_k8s_user() {
-    local K8S_USER="${1:-$(whoami)}"
+    local K8S_USER="$(whoami)"
 
     echo_log "INFO" "Configuring Kubernetes access for user: $K8S_USER"
 
@@ -285,7 +285,7 @@ install_calico_plugin() {
         echo_log "ERROR" "Failed to download custom-resources.yaml."; exit 1;
     }
 
-    sed -i "s/cidr: 192\.168\.0\.0\/16/cidr: $POD_CIDR/g" custom-resources.yaml || {
+    sed -i "s|cidr: 192\.168\.0\.0/16|cidr: \"$POD_CIDR\"|g" custom-resources.yaml || {
         echo_log "ERROR" "Failed to update CIDR in custom-resources.yaml."; exit 1;
     }
 
