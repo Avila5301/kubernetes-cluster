@@ -208,7 +208,7 @@ join_master() {
 wait_for_api_server() {
     echo_log "INFO" "Waiting for Kubernetes API server to become available..."
 
-    for i in {1..30}; do
+    for i in {1..150}; do  # 150 loops × 2 seconds = 300 seconds (5 minutes)
         if kubectl version --short &>/dev/null; then
             echo_log "INFO" "Kubernetes API server is responsive."
             return 0
@@ -216,7 +216,7 @@ wait_for_api_server() {
         sleep 2
     done
 
-    echo_log "ERROR" "Kubernetes API server did not become ready in time."
+    echo_log "ERROR" "Kubernetes API server did not become ready within 5 minutes."
     exit 1
 }
 
