@@ -213,10 +213,10 @@ join_master() {
     echo_log "INFO" "Successfully Joined Master Node.."
 }
 
-wait_for_node_staus() {
+wait_for_node_status() {
     echo_log "INFO" "Waiting for Kubernetes API server to become available..."
 
-    for i in {1..30}; do  # 30 loops × 2 seconds = 60 seconds (1 minutes)
+    for i in {1..150}; do  # 150 loops × 2 seconds = 300 seconds (5 minutes)
         if kubectl version --short &>/dev/null; then
             echo_log "INFO" "Kubernetes API server is responsive."
             sudo kubectl get nodes
@@ -234,6 +234,7 @@ select_node_type() {
         echo_log "INFO" "Provisioning a Control Plane Node."
         initialize_control_plane
         setup_k8s_user
+        wait_for_node_status
         install_calico_plugin        
     elif [[ "$NODE_TYPE" == "worker" ]]; then
         echo_log "INFO" "Provisioning a Worker Node."
@@ -320,7 +321,7 @@ install_calico_plugin() {
 
     echo_log "INFO" "Calico network plugin installed successfully."
 
-    wait_for_node_staus
+    wait_for_node_status
 }
 
 
