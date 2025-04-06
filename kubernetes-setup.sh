@@ -219,7 +219,7 @@ wait_for_node_status() {
     echo_log "INFO" "Waiting for Kubernetes API server to become available..."
 
     for i in {1..30}; do  # 30 loops × 2 seconds = 60 seconds (1 minutes)
-        if kubectl version --short &>/dev/null; then
+        if sudo -u $K8S_USER kubectl version --short &>/dev/null; then
             echo_log "INFO" "Kubernetes API server is responsive."
             sudo kubectl get nodes
             return 0
