@@ -289,6 +289,7 @@ setup_k8s_user() {
         mkdir -p "$HOME_DIR/.kube"
         sudo cp -i /etc/kubernetes/admin.conf "$HOME_DIR/.kube/config"
         sudo chown $(id -u $K8S_USER):$(id -g $K8S_USER) "$HOME_DIR/.kube/config"
+        export KUBECONFIG=$HOME_DIR/.kube/config
 
         echo_log "INFO" "Kubernetes configuration set up for $K8S_USER."
     fi
