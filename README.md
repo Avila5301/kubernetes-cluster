@@ -10,7 +10,7 @@ This Bash script automates the provisioning of Kubernetes Control Plane (cp) and
 
 * Able to SSH into the server(s)
 * A Minimum of 2 vCPU & 2GB RAM (For CP and/or Worker)
-* A Minimum of 8GB of Disk Space (Suggestion not hard requirment)
+* A Minimum of 8GB of Disk Space (AWS Default)
 
 
 ### Capatiable with the following Ubuntu versions
@@ -41,7 +41,6 @@ This Bash script automates the provisioning of Kubernetes Control Plane (cp) and
 
 ## ⚙️ Prerequisites
 
-- Must be run with `sudo`
 - Script must have execute permissions:
   ```bash
   chmod +x kubernetes-setup.sh
@@ -52,7 +51,7 @@ This Bash script automates the provisioning of Kubernetes Control Plane (cp) and
 ## 🚀 Usage
 
 ```bash
-sudo ./kubernetes-setup.sh [OPTIONS]
+./kubernetes-setup.sh [OPTIONS]
 ```
 
 ### ✅ Common Arguments
@@ -61,7 +60,7 @@ sudo ./kubernetes-setup.sh [OPTIONS]
 |---------------------|----------------------------------------------------------------|----------------------|
 | `--node_type`       | Node type: `cp` (Control Plane) or `worker`                    | `cp`                 |
 | `--hostname`        | Hostname for the node                                          | `k8s-master-node`    |
-| `--k8s_version`     | Kubernetes version (e.g., `1.31`)                             | `1.31`              |
+| `--k8s_version`     | Kubernetes version (e.g., `1.31`)                              | `1.31`              |
 | `--pod_cidr`        | Pod CIDR for networking                                        | `192.168.0.0/16`     |
 | `--join`            | Master node IP and port (Required for worker nodes)            | *None*               |
 | `--token`           | Token for joining the cluster (Required for worker nodes)      | *None*               |
@@ -76,13 +75,13 @@ sudo ./kubernetes-setup.sh [OPTIONS]
 ### 🛠 Provision a Control Plane Node
 
 ```bash
-sudo ./kubernetes-setup.sh --node_type cp --hostname my-cp-node
+./kubernetes-setup.sh --node_type cp --hostname my-cp-node
 ```
 
 Or with custom Kubernetes version and Pod CIDR:
 
 ```bash
-sudo ./kubernetes-setup.sh --node_type cp --hostname my-cp-node --k8s_version v1.32 --pod_cidr 10.244.0.0/16
+./kubernetes-setup.sh --node_type cp --hostname my-cp-node --k8s_version v1.32 --pod_cidr 10.244.0.0/16
 ```
 
 ---
@@ -92,12 +91,12 @@ sudo ./kubernetes-setup.sh --node_type cp --hostname my-cp-node --k8s_version v1
 First, retrieve the join command from the control plane node log at `/var/log/k8s_provisioning.log`, then:
 
 ```bash
-sudo ./kubernetes-setup.sh \
+./kubernetes-setup.sh \
   --node_type worker \
   --hostname worker-node-1 \
-  --join 172.168.222.222:6443 \
+  --join 172.32.95.160:6443 \
   --token <your-token> \
-  --discovery-token sha256:<your-discovery-token>
+  --discovery-token <sha256:your-discovery-token>
 ```
 
 ---
@@ -105,9 +104,10 @@ sudo ./kubernetes-setup.sh \
 ## 📝 Notes
 
 - On control plane initialization, the script will output a `kubeadm join` command. Save it to use for joining worker nodes.
-- The script assumes you are running as `root` or with `sudo`.
+- The script assumes you are running as a user or with `sudo` permissions.
 - The script logs everything to: `/var/log/k8s_provisioning.log`
 - Ensure your system has access to Kubernetes repositories and GitHub URLs for the Calico manifests.
+- Ensure Networking / Firewall rules are updated to allow communication between nodes
 
 ---
 
@@ -116,6 +116,8 @@ sudo ./kubernetes-setup.sh \
 - Ensure network connectivity to download Calico manifests.
 - Check the log file `/var/log/k8s_provisioning.log` for any error messages.
 - Ensure you are using a supported Ubuntu version (20.04, 22.04, or 24.04).
+- Check Network Routing in your Subnet
+- Check Firewall Rules (NSG's / SG's) to Allow Kubernetes Traffic
 
 ---
 
