@@ -234,7 +234,7 @@ select_node_type() {
         echo_log "INFO" "Provisioning a Control Plane Node."
         initialize_control_plane
         setup_k8s_user
-        install_calico_plugin        
+             
     elif [[ "$NODE_TYPE" == "worker" ]]; then
         echo_log "INFO" "Provisioning a Worker Node."
         if [[ -z "$JOIN" || -z "$TOKEN" || -z "$DISCOVERY_TOKEN" ]]; then
@@ -340,3 +340,4 @@ install_k8s_tools "$K8S_VERSION"
 
 # Fucntion Required for Master Node only / Worker Join
 select_node_type "$NODE_TYPE"
+install_calico_plugin   
