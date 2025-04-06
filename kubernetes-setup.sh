@@ -30,7 +30,7 @@ echo_log () {
     local LOG_LEVEL="$1"
     shift
     local MESSAGE="$@"
-    echo "$(date +'%Y-%m-%d %H:%M:%S')" [$LOG_LEVEL] $MESSAGE | tee -a "$LOG_FILE"
+    echo "$(date +'%Y-%m-%d %H:%M:%S')" [$LOG_LEVEL] $MESSAGE | sudo tee -a "$LOG_FILE"
 }
 
 # Function to display usage help
@@ -128,13 +128,13 @@ configure_hostname() {
     fi
     
     echo_log "INFO" "Setting hostname to $HOSTNAME"
-    hostnamectl set-hostname "$HOSTNAME"
+    sudo hostnamectl set-hostname "$HOSTNAME"
 }
 
 # Function to disable swap
 disable_swap() {
     echo_log "INFO" "Disabling swap..."
-    swapoff -a || true
+    sudo swapoff -a || true
     echo "Disabling swap permanently by modifying /etc/fstab..."
     if grep -Eqs '^\s*[^#].*\s+swap\s' /etc/fstab; then
         sudo sed -i.bak '/^\s*[^#].*\s\+swap\s\+/s/^/#/' /etc/fstab
@@ -164,13 +164,13 @@ k8s_networking() {
 
     echo_log "INFO" "Configuring Kubernetes networking settings in $CONFIG_FILE..."
 
-    cat <<EOF | tee "$CONFIG_FILE" > /dev/null
+    cat <<EOF | sudo tee "$CONFIG_FILE" > /dev/null
 net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward = 1
 EOF
 
-    sysctl --system || { echo_log "ERROR" "Failed to apply sysctl settings."; exit 1; }
+    sudo sysctl --system || { echo_log "ERROR" "Failed to apply sysctl settings."; exit 1; }
 
     echo_log "INFO" "Kubernetes networking settings applied successfully."
 }
@@ -209,7 +209,7 @@ install_k8s_tools() {
 
 join_master() {
     echo_log "INFO" "Joining Master Node.."
-    kubeadm join $JOIN --token $TOKEN --discovery-token-ca-cert-hash $DISCOVERY_TOKEN
+    sudo kubeadm join $JOIN --token $TOKEN --discovery-token-ca-cert-hash $DISCOVERY_TOKEN
     echo_log "INFO" "Successfully Joined Master Node.."
 }
 
@@ -219,7 +219,7 @@ wait_for_node_staus() {
     for i in {1..30}; do  # 30 loops × 2 seconds = 60 seconds (1 minutes)
         if kubectl version --short &>/dev/null; then
             echo_log "INFO" "Kubernetes API server is responsive."
-            kubectl get nodes
+            sudo kubectl get nodes
             return 0
         fi
         sleep 2
@@ -254,7 +254,7 @@ initialize_control_plane() {
     local POD_CIDR=$POD_CIDR
     echo_log "INFO" "Initializing Kubernetes control plane with CIDR: $POD_CIDR..."
 
-    kubeadm init --pod-network-cidr=$POD_CIDR 2>&1 | tee -a "$LOG_FILE"
+    sudo kubeadm init --pod-network-cidr=$POD_CIDR 2>&1 | sudo tee -a "$LOG_FILE"
 
     if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
         echo_log "ERROR" "Control plane initialization failed."
@@ -295,11 +295,12 @@ setup_k8s_user() {
 # Install Calico Plugin
 install_calico_plugin() {
     local POD_CIDR=$POD_CIDR
-    local KUBECONFIG_PATH="~/.kube/config"
+    # local KUBECONFIG_PATH="~/.kube/config"
 
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
 
-    KUBECONFIG=$KUBECONFIG_PATH kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
+    # KUBECONFIG=$KUBECONFIG_PATH 
+    sudo kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
         echo_log "ERROR" "Failed to apply Calico operator manifest."; exit 1;
     }
 
@@ -307,11 +308,12 @@ install_calico_plugin() {
         echo_log "ERROR" "Failed to download custom-resources.yaml."; exit 1;
     }
 
-    sed -i "s|cidr: 192\.168\.0\.0/16|cidr: \"$POD_CIDR\"|g" custom-resources.yaml || {
+    sudo sed -i "s|cidr: 192\.168\.0\.0/16|cidr: \"$POD_CIDR\"|g" custom-resources.yaml || {
         echo_log "ERROR" "Failed to update CIDR in custom-resources.yaml."; exit 1;
     }
 
-    KUBECONFIG=$KUBECONFIG_PATH kubectl create -f custom-resources.yaml || {
+    # KUBECONFIG=$KUBECONFIG_PATH 
+    sudo kubectl create -f custom-resources.yaml || {
         echo_log "ERROR" "Failed to apply Calico custom resources."; exit 1;
     }
 
