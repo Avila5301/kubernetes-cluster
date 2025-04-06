@@ -13,7 +13,7 @@
 #
 # Requirements:
 #   - Must be run with sudo or as root
-#   - Compatible with Ubuntu 20.04 / 22.04
+#   - Compatible with Ubuntu 20.04 / 22.04 / 24.04
 #   - Internet connection for package installation
 #
 # Author:        Avi Avila
@@ -140,7 +140,7 @@ disable_swap() {
         sudo sed -i.bak '/^\s*[^#].*\s\+swap\s\+/s/^/#/' /etc/fstab
         echo "Swap entries in /etc/fstab have been commented out. A backup is saved as /etc/fstab.bak"
     else
-        echo "ℹ️ No active swap entries found in /etc/fstab."
+        echo "No active swap entries found in /etc/fstab."
     fi
 }
 
@@ -295,10 +295,8 @@ setup_k8s_user() {
 # Install Calico Plugin
 install_calico_plugin() {
     local POD_CIDR=$POD_CIDR
-    local KUBECONFIG_PATH=${KUBECONFIG:-~/.kube/config}
+    local KUBECONFIG_PATH="~/.kube/config"
 
-    echo_log "INFO" "Waiting 120 seconds before moving on..."
-    sleep 120
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
 
     KUBECONFIG=$KUBECONFIG_PATH kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
