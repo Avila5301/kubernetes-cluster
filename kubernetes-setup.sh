@@ -291,6 +291,7 @@ setup_k8s_user() {
         sudo chown $(id -u $K8S_USER):$(id -g $K8S_USER) "$HOME_DIR/.kube/config"
         export KUBECONFIG=$HOME_DIR/.kube/config
 
+        echo "KUBECONFIG is set to: $KUBECONFIG"
         echo_log "INFO" "Kubernetes configuration set up for $K8S_USER."
     fi
 }
