@@ -64,6 +64,7 @@ POD_CIDR="192.168.0.0/16"
 JOIN=""
 TOKEN=""
 DISCOVERY_TOKEN=""
+K8S_USER="$(whoami)"
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -185,6 +186,7 @@ update_system() {
 install_docker() {
     echo_log "INFO" "Installing Docker"
     sudo apt install docker.io -y
+    sudo systemctl start docker
     sudo systemctl enable docker
     sleep 2
     sudo mkdir /etc/containerd
@@ -270,7 +272,7 @@ initialize_control_plane() {
 # Ask user to switch to regular user
 setup_k8s_user() {
     # local K8S_USER="${SUDO_USER:-$(whoami)}"
-    local K8S_USER="$(whoami)"
+    local K8S_USER=$K8S_USER
 
     echo_log "INFO" "Configuring Kubernetes access for user: $K8S_USER"
 
@@ -289,9 +291,9 @@ setup_k8s_user() {
         mkdir -p "$HOME_DIR/.kube"
         sudo cp -i /etc/kubernetes/admin.conf "$HOME_DIR/.kube/config"
         sudo chown $(id -u $K8S_USER):$(id -g $K8S_USER) "$HOME_DIR/.kube/config"
-        export KUBECONFIG=$HOME_DIR/.kube/config
+        # export KUBECONFIG=$HOME_DIR/.kube/config
 
-        echo "KUBECONFIG is set to: $KUBECONFIG"
+        # echo "KUBECONFIG is set to: $KUBECONFIG"
         echo_log "INFO" "Kubernetes configuration set up for $K8S_USER."
     fi
 }
@@ -299,12 +301,14 @@ setup_k8s_user() {
 # Install Calico Plugin
 install_calico_plugin() {
     local POD_CIDR=$POD_CIDR
-    # local KUBECONFIG_PATH="~/.kube/config"
+    local K8S_USER=$K8S_USER
 
+    # export KUBECONFIG_PATH="~/.kube/config"
+    # echo "KUBECONFIG is set to: $KUBECONFIG"
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
 
     # KUBECONFIG=$KUBECONFIG_PATH 
-    sudo kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
+    sudo -u $K8S_USER kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
         echo_log "ERROR" "Failed to apply Calico operator manifest."; exit 1;
     }
 
@@ -317,7 +321,7 @@ install_calico_plugin() {
     }
 
     # KUBECONFIG=$KUBECONFIG_PATH 
-    sudo kubectl create -f custom-resources.yaml || {
+    sudo -u $K8S_USER kubectl create -f custom-resources.yaml || {
         echo_log "ERROR" "Failed to apply Calico custom resources."; exit 1;
     }
 
