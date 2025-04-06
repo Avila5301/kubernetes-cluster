@@ -234,7 +234,7 @@ select_node_type() {
         echo_log "INFO" "Provisioning a Control Plane Node."
         initialize_control_plane
         setup_k8s_user
-             
+        install_calico_plugin        
     elif [[ "$NODE_TYPE" == "worker" ]]; then
         echo_log "INFO" "Provisioning a Worker Node."
         if [[ -z "$JOIN" || -z "$TOKEN" || -z "$DISCOVERY_TOKEN" ]]; then
@@ -295,11 +295,13 @@ setup_k8s_user() {
 # Install Calico Plugin
 install_calico_plugin() {
     local POD_CIDR=$POD_CIDR
+    local KUBECONFIG_PATH=${KUBECONFIG:-~/.kube/config}
 
     echo_log "INFO" "Waiting 120 seconds before moving on..."
     sleep 120
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
-    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
+
+    KUBECONFIG=$KUBECONFIG_PATH kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
         echo_log "ERROR" "Failed to apply Calico operator manifest."; exit 1;
     }
 
@@ -311,7 +313,7 @@ install_calico_plugin() {
         echo_log "ERROR" "Failed to update CIDR in custom-resources.yaml."; exit 1;
     }
 
-    kubectl create -f custom-resources.yaml || {
+    KUBECONFIG=$KUBECONFIG_PATH kubectl create -f custom-resources.yaml || {
         echo_log "ERROR" "Failed to apply Calico custom resources."; exit 1;
     }
 
@@ -319,6 +321,7 @@ install_calico_plugin() {
 
     wait_for_node_staus
 }
+
 
 
 
@@ -340,4 +343,3 @@ install_k8s_tools "$K8S_VERSION"
 
 # Fucntion Required for Master Node only / Worker Join
 select_node_type "$NODE_TYPE"
-install_calico_plugin   
