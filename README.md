@@ -41,6 +41,12 @@ This Bash script automates the provisioning of Kubernetes Control Plane (cp) and
 
 ## ⚙️ Prerequisites
 
+- Git Clone the repository into your server
+    ```bash
+    git clone https://github.com/Avila5301/kubernetes-cluster.git
+    ```
+
+- Followed by `cd kubernetes-cluster` 
 - Script must have execute permissions:
   ```bash
   chmod +x kubernetes-setup.sh

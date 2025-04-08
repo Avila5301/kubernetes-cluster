@@ -204,7 +204,7 @@ install_k8s_tools() {
     sudo apt-get install curl ca-certificates apt-transport-https -y
     curl -fsSL https://pkgs.k8s.io/core:/stable:/v$K8S_VERSION/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v$K8S_VERSION/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    sudo apt update
+    update_system
     sudo apt install kubelet kubeadm kubectl -y
     echo_log "INFO" "Installed Kubelet, Kubeadm and Kubectl successfully"
 }
@@ -221,7 +221,7 @@ wait_for_node_status() {
     for i in {1..30}; do  # 30 loops × 2 seconds = 60 seconds (1 minutes)
         if sudo -u $K8S_USER kubectl version --short &>/dev/null; then
             echo_log "INFO" "Kubernetes API server is responsive."
-            sudo kubectl get nodes
+            sudo -u $K8S_USER kubectl get nodes
             return 0
         fi
         sleep 2
@@ -303,11 +303,8 @@ install_calico_plugin() {
     local POD_CIDR=$POD_CIDR
     local K8S_USER=$K8S_USER
 
-    # export KUBECONFIG_PATH="~/.kube/config"
-    # echo "KUBECONFIG is set to: $KUBECONFIG"
     echo_log "INFO" "Installing Calico network plugin using Calico operator..."
 
-    # KUBECONFIG=$KUBECONFIG_PATH 
     sudo -u $K8S_USER kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml || {
         echo_log "ERROR" "Failed to apply Calico operator manifest."; exit 1;
     }
@@ -320,7 +317,6 @@ install_calico_plugin() {
         echo_log "ERROR" "Failed to update CIDR in custom-resources.yaml."; exit 1;
     }
 
-    # KUBECONFIG=$KUBECONFIG_PATH 
     sudo -u $K8S_USER kubectl create -f custom-resources.yaml || {
         echo_log "ERROR" "Failed to apply Calico custom resources."; exit 1;
     }
@@ -345,7 +341,6 @@ configure_hostname "$HOSTNAME"
 disable_swap
 containerd_modules
 k8s_networking
-update_system
 install_docker
 install_k8s_tools "$K8S_VERSION"
 
